@@ -41,3 +41,49 @@ ul {
     color: #44692a;
     border-bottom: 5px solid  #44692a;
 }
+
+.wrap {
+    display: flex;
+    flex-direction: row;
+}
+
+.wrap .content {
+    flex: 1;
+}
+
+.wrap .sidebar {
+    width: 100%;
+    max-width: 400px;
+}
+
+.sidebar .row {
+    display: flex;
+    flex-direction: row;
+}
+
+.sidebar .row .info {
+    flex: 1;
+}
+
+.sidebar .info  {
+    font-size: 18px;
+    padding: 10px 0;
+    border-bottom: 1px solid #75796e;
+}
+
+.sidebar .info label {
+    display: block;
+    font-size: 16px;
+    line-height: 24px;
+    color: #777;
+}
+
+.sidebar .command {
+    cursor: pointer;
+    margin: 10px 0;
+    padding: 0 20px;
+    line-height: 40px;
+    border-radius: 5px;
+    border: 2px solid #ccc;
+}
+

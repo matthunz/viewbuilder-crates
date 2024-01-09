@@ -1,5 +1,7 @@
+use std::borrow::Cow;
+
 use viewbuilder::{
-    view::{AnyView, OneOf4},
+    view::OneOf4,
     web::{html, Web},
     ControlFlow, Model, View,
 };
@@ -9,9 +11,24 @@ enum Message {
     Tab(Tab),
 }
 
-#[derive(Default)]
 struct App {
     tab: Tab,
+    name: String,
+    version: String,
+    license: String,
+    repository: String,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            tab: Default::default(),
+            name: String::from("viewbuilder"),
+            version: String::from("v0.10.0"),
+            license: String::from("MIT or Apache-2.0"),
+            repository: String::from("https://github.com/matthunz/viewbuilder"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -52,6 +69,7 @@ fn view(model: &App) -> impl View<Web, Message> {
     html::div(
         html::class("container"),
         (
+            html::h1((), model.name.clone()),
             html::ul(
                 html::class("tabs"),
                 (
@@ -61,14 +79,56 @@ fn view(model: &App) -> impl View<Web, Message> {
                     view_tab("Dependents", Tab::Dependents, model.tab),
                 ),
             ),
-            match model.tab {
-                Tab::Readme => OneOf4::a(view_readme()),
-                Tab::Versions => OneOf4::b(view_versions()),
-                Tab::Dependencies => OneOf4::c(view_dependencies()),
-                Tab::Dependents => OneOf4::d(view_dependents()),
-            },
+            html::div(
+                html::class("wrap"),
+                (
+                    html::div(
+                        html::class("content"),
+                        match model.tab {
+                            Tab::Readme => OneOf4::a(view_readme()),
+                            Tab::Versions => OneOf4::b(view_versions()),
+                            Tab::Dependencies => OneOf4::c(view_dependencies()),
+                            Tab::Dependents => OneOf4::d(view_dependents()),
+                        },
+                    ),
+                    html::ul(
+                        html::class("sidebar"),
+                        (
+                            view_info("Documentation", html::a((), "url")),
+                            view_info("Repository", html::a((), "url")),
+                            view_info("Homepage", html::a((), "url")),
+                            view_info(
+                                "Install",
+                                (
+                                    view_command(format!("viewbuilder = {}", model.version)),
+                                    view_command("cargo install viewbuilder"),
+                                ),
+                            ),
+                            html::li(
+                                (),
+                                html::ul(
+                                    html::class("row"),
+                                    (
+                                        view_info("Version", html::a((), model.version.clone())),
+                                        view_info("License", html::a((), model.license.clone())),
+                                    ),
+                                ),
+                            ),
+                            view_info("Last update", "20 hours ago"),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
+}
+
+fn view_info(label: &'static str, content: impl View<Web, Message>) -> impl View<Web, Message> {
+    html::li(html::class("info"), (html::label((), label), content))
+}
+
+fn view_command(command: impl Into<Cow<'static, str>>) -> impl View<Web, Message> {
+    html::li(html::class("command"), command.into())
 }
 
 fn view_tab(name: &'static str, tab: Tab, selected: Tab) -> impl View<Web, Message> {
