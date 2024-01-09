@@ -1,35 +1,12 @@
 use std::borrow::Cow;
-
 use viewbuilder::{
-    view::OneOf4,
-    web::{html, Web},
+    view::{OneOf2, OneOf4},
+    web::{
+        html::{self, class, html},
+        Web,
+    },
     ControlFlow, Model, View,
 };
-
-#[derive(Debug)]
-enum Message {
-    Tab(Tab),
-}
-
-struct App {
-    tab: Tab,
-    name: String,
-    version: String,
-    license: String,
-    repository: String,
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            tab: Default::default(),
-            name: String::from("viewbuilder"),
-            version: String::from("v0.10.0"),
-            license: String::from("MIT or Apache-2.0"),
-            repository: String::from("https://github.com/matthunz/viewbuilder"),
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tab {
@@ -40,10 +17,80 @@ enum Tab {
     Dependents,
 }
 
+#[derive(Debug)]
+enum CrateMessage {
+    Tab(Tab),
+    SelectVersion { idx: usize },
+}
+
+#[derive(Debug)]
+enum Message {
+    Crate(CrateMessage),
+    Screen(Screen),
+}
+
+#[derive(Debug)]
+struct Version {
+    name: String,
+}
+
+#[derive(Debug)]
+struct CrateScreen {
+    tab: Tab,
+    name: String,
+    versions: Vec<Version>,
+    version_idx: usize,
+    license: String,
+    repository: String,
+}
+
+impl Default for CrateScreen {
+    fn default() -> Self {
+        Self {
+            tab: Default::default(),
+            name: String::from("viewbuilder"),
+            versions: vec![
+                Version {
+                    name: String::from("v0.10.0"),
+                },
+                Version {
+                    name: String::from("v0.9.0"),
+                },
+            ],
+            version_idx: 0,
+            license: String::from("MIT or Apache-2.0"),
+            repository: String::from("https://github.com/matthunz/viewbuilder"),
+        }
+    }
+}
+
+#[derive(Debug, Default)]
+enum Screen {
+    #[default]
+    Home,
+    Crate(CrateScreen),
+}
+
+#[derive(Default)]
+pub struct App {
+    screen: Screen,
+}
+
 impl Model<Message> for App {
     fn handle(&mut self, msg: Message) -> ControlFlow {
         match msg {
-            Message::Tab(tab) => self.tab = tab,
+            Message::Crate(crate_msg) => {
+                if let Screen::Crate(ref mut krate) = self.screen {
+                    match crate_msg {
+                        CrateMessage::Tab(tab) => krate.tab = tab,
+                        CrateMessage::SelectVersion { idx } => {
+                            krate.version_idx = idx;
+                            krate.tab = Tab::Readme;
+                        }
+                    }
+                }
+            }
+            Message::Screen(screen) => self.screen = screen,
         }
         ControlFlow::Rebuild
     }
@@ -53,8 +100,34 @@ fn view_readme() -> impl View<Web, Message> {
     "Readme"
 }
 
-fn view_versions() -> impl View<Web, Message> {
-    "Versions"
+fn view_versions(versions: &[Version]) -> impl View<Web, Message> {
+    html::ul(
+        (),
+        versions
+            .iter()
+            .enumerate()
+            .map(|(idx, version)| {
+                (
+                    idx,
+                    html::li(
+                        html::class("version"),
+                        (
+                            html::a(
+                                (
+                                    html::class("name"),
+                                    html::on_click(move || {
+                                        Message::Crate(CrateMessage::SelectVersion { idx })
+                                    }),
+                                ),
+                                version.name.clone(),
+                            ),
+                            html::div((), "12,000"),
+                        ),
+                    ),
+                )
+            })
+            .collect::<Vec<_>>(),
+    )
 }
 
 fn view_dependencies() -> impl View<Web, Message> {
@@ -65,11 +138,17 @@ fn view_dependents() -> impl View<Web, Message> {
     "Dependents"
 }
 
-fn view(model: &App) -> impl View<Web, Message> {
+fn view_crate(model: &CrateScreen) -> impl View<Web, Message> {
+    let selected_version = &model.versions[model.version_idx];
+
     html::div(
         html::class("container"),
         (
             html::h1((), model.name.clone()),
+            html::h5(
+                class("latest-version"),
+                model.versions.last().unwrap().name.clone(),
+            ),
             html::ul(
                 html::class("tabs"),
                 (
@@ -86,7 +165,7 @@ fn view(model: &App) -> impl View<Web, Message> {
                         html::class("content"),
                         match model.tab {
                             Tab::Readme => OneOf4::a(view_readme()),
-                            Tab::Versions => OneOf4::b(view_versions()),
+                            Tab::Versions => OneOf4::b(view_versions(&model.versions)),
                             Tab::Dependencies => OneOf4::c(view_dependencies()),
                             Tab::Dependents => OneOf4::d(view_dependents()),
                         },
@@ -100,7 +179,10 @@ fn view(model: &App) -> impl View<Web, Message> {
                             view_info(
                                 "Install",
                                 (
-                                    view_command(format!("viewbuilder = {}", model.version)),
+                                    view_command(format!(
+                                        "viewbuilder = {}",
+                                        &selected_version.name
+                                    )),
                                     view_command("cargo install viewbuilder"),
                                 ),
                             ),
@@ -109,7 +191,10 @@ fn view(model: &App) -> impl View<Web, Message> {
                                 html::ul(
                                     html::class("row"),
                                     (
-                                        view_info("Version", html::a((), model.version.clone())),
+                                        view_info(
+                                            "Version",
+                                            html::a((), selected_version.name.clone()),
+                                        ),
                                         view_info("License", html::a((), model.license.clone())),
                                     ),
                                 ),
@@ -139,9 +224,22 @@ fn view_tab(name: &'static str, tab: Tab, selected: Tab) -> impl View<Web, Messa
             } else {
                 None
             },
-            html::on_click(move || Message::Tab(tab)),
+            html::on_click(move || Message::Crate(CrateMessage::Tab(tab))),
         ),
         html::a((), name),
+    )
+}
+
+fn view(model: &App) -> impl View<Web, Message> {
+    (
+        html::a(html::on_click(|| Message::Screen(Screen::Home)), "Home"),
+        match &model.screen {
+            Screen::Home => OneOf2::a(html::a(
+                html::on_click(|| Message::Screen(Screen::Crate(CrateScreen::default()))),
+                "Go to crate",
+            )),
+            Screen::Crate(krate) => OneOf2::b(view_crate(&krate)),
+        },
     )
 }
 
@@ -153,5 +251,7 @@ fn main() {
             .build(),
     );
 
-    viewbuilder::web::run(App::default(), view);
+    wasm_rs_async_executor::single_threaded::block_on(async move {
+        viewbuilder::web::run(App::default(), view);
+    });
 }

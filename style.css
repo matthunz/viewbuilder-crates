@@ -1,89 +1,106 @@
 html {
-    font-family: sans-serif;
+  font-family: sans-serif;
 }
 
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 ul {
-    list-style: none;
+  list-style: none;
 }
 
 .container {
-    width: 100%;
-    max-width: 1000px;
-    margin: auto;
+  width: 100%;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.latest-version {
+    font-size: 14px;
+    font-family: monospace;
+    font-weight: 400;
+    color: #888;
 }
 
 .tabs {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 .tabs li {
-    cursor: pointer;
-    flex: 1;
-    border-radius: 5px 5px 0 0;
-    border-bottom: 2px solid #75796e;
-    text-align: center;
-    line-height: 40px;
+  cursor: pointer;
+  flex: 1;
+  border-radius: 5px 5px 0 0;
+  border-bottom: 2px solid #75796e;
+  text-align: center;
+  line-height: 40px;
 }
 
 .tabs li:hover {
-    color: #44692a;
-    background: #c4f1a1;
+  color: #44692a;
+  background: #c4f1a1;
 }
 
 .tabs li.selected {
-    color: #44692a;
-    border-bottom: 5px solid  #44692a;
+  color: #44692a;
+  border-bottom: 5px solid #44692a;
 }
 
 .wrap {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
 }
 
 .wrap .content {
-    flex: 1;
+  flex: 1;
 }
 
 .wrap .sidebar {
-    width: 100%;
-    max-width: 400px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .sidebar .row {
+  display: flex;
+  flex-direction: row;
+}
+
+.sidebar .row .info {
+  flex: 1;
+}
+
+.sidebar .info {
+  font-size: 18px;
+  padding: 10px 0;
+  border-bottom: 1px solid #75796e;
+}
+
+.sidebar .info label {
+  display: block;
+  font-size: 16px;
+  line-height: 24px;
+  color: #777;
+}
+
+.sidebar .command {
+  cursor: pointer;
+  margin: 10px 0;
+  padding: 0 20px;
+  line-height: 40px;
+  border-radius: 5px;
+  border: 2px solid #ccc;
+}
+
+.version {
     display: flex;
     flex-direction: row;
 }
 
-.sidebar .row .info {
+.version .name {
     flex: 1;
+  font-size: 18px;
+  font-family: monospace;
 }
-
-.sidebar .info  {
-    font-size: 18px;
-    padding: 10px 0;
-    border-bottom: 1px solid #75796e;
-}
-
-.sidebar .info label {
-    display: block;
-    font-size: 16px;
-    line-height: 24px;
-    color: #777;
-}
-
-.sidebar .command {
-    cursor: pointer;
-    margin: 10px 0;
-    padding: 0 20px;
-    line-height: 40px;
-    border-radius: 5px;
-    border: 2px solid #ccc;
-}
-
