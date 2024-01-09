@@ -1,0 +1,43 @@
+html {
+    font-family: sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.tabs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.tabs li {
+    cursor: pointer;
+    flex: 1;
+    border-radius: 5px 5px 0 0;
+    border-bottom: 2px solid #75796e;
+    text-align: center;
+    line-height: 40px;
+}
+
+.tabs li:hover {
+    color: #44692a;
+    background: #c4f1a1;
+}
+
+.tabs li.selected {
+    color: #44692a;
+    border-bottom: 5px solid  #44692a;
+}
